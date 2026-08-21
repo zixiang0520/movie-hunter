@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  movie-hunter:
+    build: .
+    container_name: movie-hunter
+    restart: unless-stopped
+    ports:
+      - "8765:8765"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "nas.zx.al:host-gateway"
+    volumes:
+      - ./config:/app/config
+      - ./cache:/app/cache
+      - ./web:/app/web
+      - ./backend:/app/backend
