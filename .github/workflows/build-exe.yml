@@ -1,15 +1,15 @@
 name: Build Windows EXE
 
 on:
-  workflow_dispatch:  # 手动触发
+  workflow_dispatch:
     inputs:
       version:
-        description: "版本号（如 1.0.1）"
+        description: "Release version (e.g. 1.0.1)"
         required: false
         default: ""
   push:
     tags:
-      - "v*"  # tag 推送时也触发
+      - "v*"
 
 jobs:
   build:
@@ -40,9 +40,9 @@ jobs:
         run: |
           if (Test-Path "dist\MovieHunter.exe") {
             $size = (Get-Item "dist\MovieHunter.exe").Length / 1MB
-            Write-Host "✅ EXE size: $([math]::Round($size, 1)) MB"
+            Write-Host "EXE size: $([math]::Round($size, 1)) MB"
           } else {
-            Write-Error "❌ MovieHunter.exe not found"
+            Write-Error "MovieHunter.exe not found"
             exit 1
           }
         shell: powershell
@@ -54,12 +54,28 @@ jobs:
           path: dist/MovieHunter.exe
           if-no-files-found: error
 
-      - name: Upload to Release (on tag)
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Upload to Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $tag = "${{ github.ref_name }}"
-          Write-Host "Uploading to tag: $tag"
+          $inputVersion = "${{ github.event.inputs.version }}"
+
+          # Determine tag: use input if provided, else ref_name
+          if ($inputVersion -ne "") {
+            $tag = "v" + $inputVersion
+          }
+          if ($tag -eq "") {
+            $tag = "v1.0.1"
+          }
+
+          # Check if release exists, create if not
+          $release = gh release view "$tag" 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Creating release $tag..."
+            gh release create "$tag" --title "Movie Hunter $tag" --notes "Auto-generated EXE release"
+          }
+
+          Write-Host "Uploading to release $tag..."
           gh release upload "$tag" "dist\MovieHunter.exe" --clobber
         shell: powershell
