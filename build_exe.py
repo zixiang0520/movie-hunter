@@ -41,6 +41,10 @@ def main() -> None:
         "--windowed",
         "--noconsole",
         "--name=MovieHunter",
+        # Include web/ and config/ as data files (extracted at runtime)
+        "--add-data=" + str(HERE / "web") + ";" + str(HERE / "web"),
+        "--add-data=" + str(HERE / "config") + ";" + str(HERE / "config"),
+        "--add-data=" + str(HERE / "backend") + ";" + str(HERE / "backend"),
         # Backend modules
         "--hidden-import=backend.main",
         "--hidden-import=backend.models",
