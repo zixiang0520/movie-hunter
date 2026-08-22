@@ -36,15 +36,16 @@ def main() -> None:
             shutil.rmtree(p)
             print(f"[CLEAN] Removed: {p}")
 
+    # Use os.pathsep for --add-data separator (":" on Linux, ";" on Windows)
     pyinstaller_args = [
         "--onefile",
         "--windowed",
         "--noconsole",
         "--name=MovieHunter",
-        # Include web/ and config/ as data files (extracted at runtime)
-        "--add-data=" + str(HERE / "web") + ";" + str(HERE / "web"),
-        "--add-data=" + str(HERE / "config") + ";" + str(HERE / "config"),
-        "--add-data=" + str(HERE / "backend") + ";" + str(HERE / "backend"),
+        # Include web/, config/, backend/ as data files (extracted at runtime)
+        f"--add-data={HERE / 'web'}{os.pathsep}web",
+        f"--add-data={HERE / 'config'}{os.pathsep}config",
+        f"--add-data={HERE / 'backend'}{os.pathsep}backend",
         # Backend modules
         "--hidden-import=backend.main",
         "--hidden-import=backend.models",
