@@ -31,8 +31,8 @@ from backend.settings import load_settings, save_settings
 from backend.tmdb_client import TMDBClient
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-WEB_DIR = BASE_DIR / "web"
+BASE_DIR = MEIPASS
+WEB_DIR = MEIPASS / "web"
 
 
 def _ensure_default_settings():
