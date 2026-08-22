@@ -8,47 +8,47 @@
 """
 from __future__ import annotations
 
+import os
 import shutil
 import sys
 from pathlib import Path
+
+# Fix Windows console encoding (cp1252 can't handle emoji/unicode)
+if sys.stdout.encoding and "cp" in sys.stdout.encoding.lower():
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 HERE = Path(__file__).resolve().parent
 
 
 def main() -> None:
-    print("\n🎬  Movie Hunter EXE 打包中...\n")
+    print("\n[Movie Hunter] EXE building...\n")
 
-    # ── Check PyInstaller ────────────────────────────────────────────
     try:
         import PyInstaller  # noqa: F401
     except ImportError:
-        print("❌ 请先安装 PyInstaller:")
-        print("   pip install pyinstaller\n")
+        print("[ERROR] Please install PyInstaller first:")
+        print("  pip install pyinstaller\n")
         sys.exit(1)
 
-    # ── Clean previous build ─────────────────────────────────────────
     for d in ("build", "dist"):
         p = HERE / d
         if p.exists():
             shutil.rmtree(p)
-            print(f"  🗑️  清理旧目录: {p}")
+            print(f"[CLEAN] Removed: {p}")
 
-    # ── PyInstaller options ──────────────────────────────────────────
-    # 注意：使用 --hidden-import 逐个声明依赖，比 --collect-all 更可靠
-    #       因为 --collect-all 需要包已安装且可导入
     pyinstaller_args = [
         "--onefile",
         "--windowed",
         "--noconsole",
         "--name=MovieHunter",
-        # 隐藏导入（确保所有模块都被打包）
+        # Backend modules
         "--hidden-import=backend.main",
         "--hidden-import=backend.models",
         "--hidden-import=backend.service",
         "--hidden-import=backend.settings",
         "--hidden-import=backend.tmdb_client",
         "--hidden-import=backend",
-        # FastAPI 依赖树
+        # FastAPI stack
         "--hidden-import=fastapi",
         "--hidden-import=fastapi.middleware.cors",
         "--hidden-import=fastapi.responses",
@@ -82,15 +82,14 @@ def main() -> None:
         "--hidden-import=soupsieve",
         # Desktop
         "--hidden-import=webview",
-        "--hidden-import=webview",
-        # OpenSSL（httpx 需要）
+        # OpenSSL
         "--hidden-import=crypto",
         "--hidden-import=cryptography",
         "--hidden-import=cryptography.hazmat",
         "--hidden-import=cryptography.x509",
         "--hidden-import=cryptography.hazmat.primitives",
         "--hidden-import=cffi",
-        # PyInstaller hooks
+        # Metadata
         "--copy-metadata=pywebview",
         "--copy-metadata=fastapi",
         "--copy-metadata=httpx",
@@ -100,25 +99,23 @@ def main() -> None:
         str(HERE / "desktop.py"),
     ]
 
-    print(f"  📦  入口: desktop.py")
-    print(f"  📦  参数: 1 文件模式 + 无控制台 + {len(pyinstaller_args)} 项配置")
+    print(f"[CONFIG] Entry: desktop.py")
+    print(f"[CONFIG] Args: onefile + windowed + {len(pyinstaller_args)} hidden imports")
 
-    # ── Run PyInstaller ─────────────────────────────────────────────
     from PyInstaller.__main__ import run as pyinstaller_run
 
-    print("\n  ⏳  正在构建（约需 1-3 分钟）...\n")
+    print("\n[BUILD] Starting PyInstaller (1-3 minutes)...\n")
     pyinstaller_run(pyinstaller_args)
 
-    # ── Verify output ───────────────────────────────────────────────
     exe_path = HERE / "dist" / "MovieHunter.exe"
     if exe_path.exists():
         size_mb = exe_path.stat().st_size / (1024 * 1024)
-        print(f"\n✅  打包成功！")
-        print(f"   📁  {exe_path}")
-        print(f"   📏  {size_mb:.1f} MB")
-        print(f"\n   双击 MovieHunter.exe 即可运行 🎬")
+        print(f"\n[OK] Build successful!")
+        print(f"     File: {exe_path}")
+        print(f"     Size: {size_mb:.1f} MB")
+        print(f"\n     Double-click MovieHunter.exe to run")
     else:
-        print(f"\n❌  未找到输出文件: {exe_path}")
+        print(f"\n[ERROR] Output not found: {exe_path}")
         sys.exit(1)
 
 
