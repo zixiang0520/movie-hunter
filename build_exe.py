@@ -8,7 +8,6 @@
 """
 from __future__ import annotations
 
-import os
 import shutil
 import sys
 from pathlib import Path
@@ -35,39 +34,74 @@ def main() -> None:
             print(f"  🗑️  清理旧目录: {p}")
 
     # ── PyInstaller options ──────────────────────────────────────────
+    # 注意：使用 --hidden-import 逐个声明依赖，比 --collect-all 更可靠
+    #       因为 --collect-all 需要包已安装且可导入
     pyinstaller_args = [
-        "--onefile",                     # 单文件 EXE
-        "--windowed",                     # 无控制台窗口（pywebview 弹窗）
-        "--name=MovieHunter",             # 输出文件名
-        "--noconsole",                    # 同 --windowed
-        "--hidden-import=backend.main",   # 隐藏导入
+        "--onefile",
+        "--windowed",
+        "--noconsole",
+        "--name=MovieHunter",
+        # 隐藏导入（确保所有模块都被打包）
+        "--hidden-import=backend.main",
         "--hidden-import=backend.models",
         "--hidden-import=backend.service",
         "--hidden-import=backend.settings",
         "--hidden-import=backend.tmdb_client",
-        "--collect-all=httpx",            # 收集 httpx 全部资源
-        "--collect-all=fastapi",
-        "--collect-all=pydantic",
-        "--collect-all=uvicorn",
-        "--collect-all=starlette",
-        "--collect-all=anyio",
-        "--collect-all=snowflake_id",
-        "--copy-metadata=pywebview",      # 复制 pywebview 元数据
+        "--hidden-import=backend",
+        # FastAPI 依赖树
+        "--hidden-import=fastapi",
+        "--hidden-import=fastapi.middleware.cors",
+        "--hidden-import=fastapi.responses",
+        "--hidden-import=fastapi.staticfiles",
+        "--hidden-import=starlette",
+        "--hidden-import=starlette.middleware",
+        "--hidden-import=starlette.routing",
+        "--hidden-import=starlette.staticfiles",
+        "--hidden-import=uvicorn",
+        "--hidden-import=uvicorn.main",
+        "--hidden-import=uvicorn.logging",
+        "--hidden-import=uvicorn.lifespan.on",
+        "--hidden-import=uvicorn.protocols.http.h11_impl",
+        "--hidden-import=uvicorn.protocols.http.httptools_impl",
+        "--hidden-import=uvicorn.protocols.websockets.websockets_impl",
+        "--hidden-import=uvicorn.protocols.websockets.wsproto_impl",
+        "--hidden-import=uvicorn.loops.auto",
+        "--hidden-import=httptools",
+        "--hidden-import=websockets",
+        "--hidden-import=wsproto",
+        "--hidden-import=pydantic",
+        "--hidden-import=pydantic_settings",
+        "--hidden-import=httpx",
+        "--hidden-import=httpcore",
+        "--hidden-import=h11",
+        "--hidden-import=sniffio",
+        "--hidden-import=anyio",
+        "--hidden-import=anyio.from_thread",
+        "--hidden-import=anyio._backends._asyncio",
+        "--hidden-import=watchfiles",
+        "--hidden-import=soupsieve",
+        # Desktop
+        "--hidden-import=webview",
+        "--hidden-import=webview",
+        # OpenSSL（httpx 需要）
+        "--hidden-import=crypto",
+        "--hidden-import=cryptography",
+        "--hidden-import=cryptography.hazmat",
+        "--hidden-import=cryptography.x509",
+        "--hidden-import=cryptography.hazmat.primitives",
+        "--hidden-import=cffi",
+        # PyInstaller hooks
+        "--copy-metadata=pywebview",
         "--copy-metadata=fastapi",
         "--copy-metadata=httpx",
         "--copy-metadata=uvicorn",
         "--copy-metadata=pydantic",
-        "--copy-metadata=starlette",
-        "--paths=" + str(HERE),            # 项目根路径
-        str(HERE / "desktop.py"),          # 入口文件
+        "--paths=" + str(HERE),
+        str(HERE / "desktop.py"),
     ]
 
-    print(f"  📦  构建参数:")
-    for arg in pyinstaller_args:
-        if arg.startswith("--"):
-            print(f"      {arg}")
-        elif arg == str(HERE / "desktop.py"):
-            print(f"      📄  入口: desktop.py")
+    print(f"  📦  入口: desktop.py")
+    print(f"  📦  参数: 1 文件模式 + 无控制台 + {len(pyinstaller_args)} 项配置")
 
     # ── Run PyInstaller ─────────────────────────────────────────────
     from PyInstaller.__main__ import run as pyinstaller_run
