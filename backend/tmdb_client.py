@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import time
 import urllib.parse
 from pathlib import Path
@@ -14,7 +15,13 @@ from .models import AppSettings
 
 
 TMDB_BASE = "https://api.themoviedb.org/3"
-CACHE_DIR = Path(__file__).resolve().parent.parent / "cache"
+
+if getattr(sys, "frozen", False):
+    # EXE mode: use AppData/Local for cache (persistent, not temp)
+    _APPDATA = Path(os.environ.get("LOCALAPPDATA", os.path.expanduser("~/.local/share")))
+    CACHE_DIR = _APPDATA / "MovieHunter" / "cache"
+else:
+    CACHE_DIR = Path(__file__).resolve().parent.parent / "cache"
 
 
 def _cache_path(*parts: str) -> Path:
