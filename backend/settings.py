@@ -2,11 +2,20 @@
 from __future__ import annotations
 
 import json
+import os
+import sys
 from pathlib import Path
 
 from .models import AppSettings
 
-SETTINGS_FILE = Path(__file__).resolve().parent.parent / "config" / "settings.json"
+if getattr(sys, "frozen", False):
+    _APPDATA = Path(os.environ.get("LOCALAPPDATA", os.path.expanduser("~/.local/share")))
+    _BASE = _APPDATA / "MovieHunter"
+else:
+    _BASE = Path(__file__).resolve().parent.parent
+
+_BASE.mkdir(parents=True, exist_ok=True)
+SETTINGS_FILE = _BASE / "config" / "settings.json"
 
 _DEFAULT = AppSettings()
 
