@@ -11,6 +11,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -60,22 +63,19 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           $inputVersion = "${{ github.event.inputs.version }}"
-
-          # Determine tag: use input if provided, else ref_name
           if ($inputVersion -ne "") {
             $tag = "v" + $inputVersion
           }
           if ($tag -eq "") {
             $tag = "v1.0.1"
           }
-
-          # Check if release exists, create if not
+          Write-Host "Checking release $tag..."
           $release = gh release view "$tag" 2>$null
           if ($LASTEXITCODE -ne 0) {
             Write-Host "Creating release $tag..."
             gh release create "$tag" --title "Movie Hunter $tag" --notes "Auto-generated EXE release"
           }
-
-          Write-Host "Uploading to release $tag..."
+          Write-Host "Uploading EXE to release $tag..."
           gh release upload "$tag" "dist\MovieHunter.exe" --clobber
+          Write-Host "Done! EXE uploaded to: https://github.com/zixiang0520/movie-hunter/releases/tag/$tag"
         shell: powershell
