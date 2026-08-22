@@ -44,7 +44,6 @@ def main() -> None:
         "--name=MovieHunter",
         # Include web/, config/, backend/ as data files (extracted at runtime)
         f"--add-data={HERE / 'web'}{os.pathsep}web",
-        f"--add-data={HERE / 'config'}{os.pathsep}config",
         f"--add-data={HERE / 'backend'}{os.pathsep}backend",
         # Backend modules
         "--hidden-import=backend.main",
