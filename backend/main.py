@@ -6,8 +6,16 @@ import sys
 from pathlib import Path
 
 # Ensure project root is on sys.path so sibling imports work
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# When running as PyInstaller EXE, files are in sys._MEIPASS
+if getattr(sys, "frozen", False):
+    MEIPASS = Path(sys._MEIPASS)
+    PROJECT_ROOT = MEIPASS
+else:
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent
+    MEIPASS = PROJECT_ROOT
+
 if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
     sys.path.insert(0, str(PROJECT_ROOT))
 from contextlib import asynccontextmanager
 from typing import Optional
