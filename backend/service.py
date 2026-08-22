@@ -10,6 +10,8 @@ from .models import (
     Genre,
     MovieDetail,
     PersonDetails,
+    ProductionCompany,
+    ProductionCountry,
     SeasonDetail,
     TVDetail,
 )
@@ -59,7 +61,7 @@ def fetch_movie_detail(client: TMDBClient, movie_id: int) -> MovieDetail:
         tagline=data.get("tagline", ""),
         genres=[_first_genre(g) for g in data.get("genres", [])],
         production_companies=[
-            type("PC", (), g)
+            ProductionCompany(**g)
             for g in data.get("production_companies", [])
         ],
         original_language=data.get("original_language", ""),
@@ -90,7 +92,9 @@ def fetch_tv_detail(client: TMDBClient, tv_id: int) -> TVDetail:
         vote_count=data.get("vote_count", 0),
         popularity=data.get("popularity", 0.0),
         genres=[_first_genre(g) for g in data.get("genres", [])],
-        production_companies=data.get("production_companies", []),
+        production_companies=[
+            ProductionCompany(**c) for c in data.get("production_companies", [])
+        ],
         original_language=data.get("original_language", ""),
         original_name=data.get("original_name", ""),
         status=data.get("status", ""),
