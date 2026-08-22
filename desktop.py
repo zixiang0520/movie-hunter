@@ -7,7 +7,10 @@ import threading
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-if str(PROJECT_ROOT) not in sys.path:
+if getattr(sys, "frozen", False):
+    MEIPASS = Path(sys._MEIPASS)
+else:
+    MEIPASS = PROJECT_ROOT
     sys.path.insert(0, str(PROJECT_ROOT))
 
 try:
